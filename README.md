@@ -4,13 +4,15 @@
 
 获取点赞推文内容, 发送到指定Telegram聊天
 
-基于 Github Action 和 Gists 既可, 无需额外配置
+基于 Github Action 和 Gists, 无需外置服务器
 
 支持获取图片, 视频, GIF
 
 ## Why
 
-类似与收藏, 希望所有的点赞内容可以完整的转发到一个频道, Telegram的导出功能也比 Twitter 舒服
+类似与收藏, 希望所有的点赞内容可以**完整的**转发到一个频道(不只是链接)
+
+ Telegram的导出功能也比 Twitter 舒服
 
 ## How
 

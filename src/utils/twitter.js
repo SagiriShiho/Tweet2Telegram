@@ -55,7 +55,6 @@ const revertLinks = (formatted, originalLinks) => {
     // Remove all extra link
     const twitterLinkRegex = /https:\/\/t\.co\/[a-zA-Z0-9]{10}/g
     const links = formatted.match(twitterLinkRegex) || []
-    consola.info('[format]matched links: ', links)
     links.forEach(e => {
         formatted = formatted.replace(e, '')
     })
@@ -79,14 +78,6 @@ const formatText = (str, tweet) => {
     return formatted
 }
 
-/**
-    So, we need to identify several stuff:
-        1. we need to revert all links
-        2. if it is images/movie, upload as albums
-        3. if it is link, keep it
-        4. add captions/link to origin tweet
-        5. Cannot handle movie for now, they use ts stream
-*/
 const getAllLikesSince = async () => {
     const content = await twitterClient.tweets.favoritesList({ count: 200 })
     return content.map(e => {
