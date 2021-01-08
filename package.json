@@ -2,6 +2,7 @@
   "dependencies": {
     "async-sema": "^3.1.0",
     "consola": "^2.15.0",
+    "gists": "^2.0.0",
     "telegraf": "^3.38.0",
     "twitter-api-client": "^1.2.4"
   },
@@ -9,6 +10,6 @@
     "dotenv": "^8.2.0"
   },
   "scripts": {
-    "run": "node src/index.js"
+    "fetch": "node src/index.js"
   }
 }

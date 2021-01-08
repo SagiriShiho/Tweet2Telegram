@@ -1,12 +1,10 @@
 require('dotenv').config()
-const Telegram = require('telegraf/telegram')
-const bot = new Telegram(process.env.TELEGRAM_CHANNELBOT)
-const readPath = process.argv[2] || `${__dirname}/../dist/data.json`
 const consola = require('consola')
 
-consola.info('data reading from: ', readPath)
-
 const channelID = process.env.TELEGRAM_CHATID
+const Telegram = require('telegraf/telegram')
+const bot = new Telegram(process.env.TELEGRAM_CHANNELBOT)
+
 const { getAllLikesSince, getLatestLikeId } = require('./utils/twitter')
 const { writeData, readData } = require('./utils/io') 
 const { RateLimit } = require('async-sema');
@@ -15,8 +13,9 @@ const lim = RateLimit(7, { timeUnit: '60000' })
 // Telegram allow 30 message/s, channel however, said 20 message / minute
 // This slow down the process, as each tweet can have upto 4 message so each time it is safe to process
 // ~5 tweet/minutes
-const main = async (last_acquired) => {
-    const likes = await getAllLikesSince(last_acquired)
+const main = async (since_id) => {
+    consola.info("main: since_id:", since_id)
+    const likes = await getAllLikesSince(since_id)
     const messages = []
     // We cannot do map: we need rate limits
     for (const tweet of likes) {
@@ -56,24 +55,25 @@ const reset = async () => {
     const res = await getLatestLikeId().catch(e => {
         consola.error(e)
     })
-    const d =  { last_acquired: res }
-    consola.info('write first time data: ', d)
-    writeData(readPath, d)
-    consola.success('finished processed')
+    const d =  { since_id: res }
+    writeData(d)
+    consola.success('finished update')
 }
 
-const rec = readData(readPath)
-
-consola.info('data read: ', rec)
-
-if (rec) {
-    main(rec).then(() => {
-        consola.success('finished processed')
-    }).catch(e => {
-        consola.error(e)
-    }).finally(() => {
+readData().then(res => {
+    consola.info('data read: ', res)
+    if (res && res.since_id) {
+        reset() // we issue the update first, to avoid duplicate actions from dispatch and overlap
+        main(res.since_id).then(() => {
+            consola.success('finished processed')
+        }).catch(e => {
+            consola.error(e)
+        })
+    } else {
+        consola.info('first time access detected')
         reset()
-    })
-} else {
-    reset()
-}
+    }
+}).catch(e => {
+    consola.error(e)
+})
+

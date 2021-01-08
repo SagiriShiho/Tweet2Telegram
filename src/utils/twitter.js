@@ -1,6 +1,6 @@
 require('dotenv').config()
 const { TwitterClient } = require('twitter-api-client')
-
+const consola = require('consola')
 const twitterClient = new TwitterClient({
     apiKey: process.env.TWITTER_API_KEY,
     apiSecret: process.env.TWITTER_API_SECRET,
@@ -88,7 +88,7 @@ const formatText = (str, tweet) => {
 */
 const getAllLikesSince = async (since_id) => {
     const content = await twitterClient.tweets.favoritesList({ since_id, count: 200 })
-    content.pop()
+    consola.info('tweets: ', content)
     return content.map(e => {
         return {
             id: e.id_str,

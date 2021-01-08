@@ -1,0 +1,39 @@
+name: Twitter fetch likes to Telegram
+
+on: 
+  push:
+    branches:
+      - main
+  repository_dispatch:
+    types: fetchLikes
+  schedule:
+    - cron:  '*/15 * * * *'
+
+jobs:
+  # Set the job key. The key is displayed as the job name
+  # when a job name is not provided
+  fetch:
+    # Name the Job
+    name: getLatest
+    # Set the type of machine to run on
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version:
+          - 13.x
+
+    steps:
+      # Checks out a copy of your repository on the ubuntu-latest machine
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Create .env file
+        run: |
+          touch .env
+          echo SECRET=${{ secrets.SECRET }} >> .env
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: start job
+        run: yarn && yarn fetch
+      
