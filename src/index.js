@@ -18,16 +18,17 @@ const main = async (prev_ids, likes) => {
 
     const messages = []
     // We cannot do map: we need rate limits
-    for (const tweet of likes) {
+    for (const tweet of likes.reverse()) { // Loop from the back of the array: the same order of when likes
         if (prev_ids.includes(tweet.id)) {
             consola.info('tweet id skipped: ', tweet.id)
             continue // skip this id, sent
         }
 
         consola.info('tweet for: ', tweet)
-        const template = `${tweet.text}
+        const template = `<a href="${tweet.link}">Tweet</a> by <a href="${tweet.user.link}">@${tweet.user.username}</a> ${tweet.nsfw ? '#possiblyNSFW' : ''}
 
-<a href="${tweet.link}">Tweet</a> by <a href="${tweet.user.link}">@${tweet.user.username}</a> ${tweet.nsfw ? '#possiblyNSFW' : ''}`
+${tweet.text}
+`
         if (tweet.media.length !== 0) {
             // we need to double check if type are matched: video only or image only
             let mediaGroup = tweet.media
