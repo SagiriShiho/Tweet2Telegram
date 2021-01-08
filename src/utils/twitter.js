@@ -49,12 +49,13 @@ const convertMediaToTelegram = (ctx) => {
 
 const revertLinks = (formatted, originalLinks) => {
     originalLinks.forEach(e => {
-        formatted = formatted.replace(e.url, e.expended_url)
+        formatted = formatted.replace(e.url, e.expanded_url)
     })
 
     // Remove all extra link
     const twitterLinkRegex = /https:\/\/t\.co\/[a-zA-Z0-9]{10}/g
     const links = formatted.match(twitterLinkRegex) || []
+    consola.info('[format]matched links: ', links)
     links.forEach(e => {
         formatted = formatted.replace(e, '')
     })
@@ -86,9 +87,8 @@ const formatText = (str, tweet) => {
         4. add captions/link to origin tweet
         5. Cannot handle movie for now, they use ts stream
 */
-const getAllLikesSince = async (since_id) => {
-    const content = await twitterClient.tweets.favoritesList({ since_id, count: 200 })
-    consola.info('tweets: ', content)
+const getAllLikesSince = async () => {
+    const content = await twitterClient.tweets.favoritesList({ count: 200 })
     return content.map(e => {
         return {
             id: e.id_str,
@@ -104,12 +104,6 @@ const getAllLikesSince = async (since_id) => {
     })
 }
 
-const getLatestLikeId = async() => {
-    const tweet = await twitterClient.tweets.favoritesList({count: 1})
-    return tweet[0].id_str
-}
-
 module.exports = {
-    getAllLikesSince,
-    getLatestLikeId
+    getAllLikesSince
 }

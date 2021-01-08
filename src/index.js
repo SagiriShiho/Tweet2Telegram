@@ -8,17 +8,22 @@ const bot = new Telegram(process.env.TELEGRAM_CHANNELBOT)
 const { getAllLikesSince, getLatestLikeId } = require('./utils/twitter')
 const { writeData, readData } = require('./utils/io') 
 const { RateLimit } = require('async-sema');
-const lim = RateLimit(7, { timeUnit: '60000' })
+const lim = RateLimit(5, { timeUnit: '60000', uniformDistribution: true})
 
 // Telegram allow 30 message/s, channel however, said 20 message / minute
 // This slow down the process, as each tweet can have upto 4 message so each time it is safe to process
 // ~5 tweet/minutes
-const main = async (since_id) => {
-    consola.info("main: since_id:", since_id)
-    const likes = await getAllLikesSince(since_id)
+const main = async (prev_ids, likes) => {
+    consola.info("main: since_id:", prev_ids)
+
     const messages = []
     // We cannot do map: we need rate limits
     for (const tweet of likes) {
+        if (prev_ids.includes(tweet.id)) {
+            consola.info('tweet id skipped: ', tweet.id)
+            continue // skip this id, sent
+        }
+
         consola.info('tweet for: ', tweet)
         const template = `${tweet.text}
 
@@ -48,30 +53,47 @@ const main = async (since_id) => {
         }))
     }
 
-    return Promise.all(messages)
+    return messages
 }
 
-const reset = async () => {
-    const res = await getLatestLikeId().catch(e => {
-        consola.error(e)
-    })
-    const d =  { since_id: res }
-    writeData(d)
-    consola.success('finished update')
+const update = async (prev_ids, ids) => {
+    if (prev_ids.length === ids.length && prev_ids.every(function(value, index) { return value === ids[index]})) {
+        consola.success('no update required')
+        return
+    } else {
+        const d =  { since_id: ids }
+        await writeData(d)
+        consola.success('finished update')
+    }
 }
 
 readData().then(res => {
     consola.info('data read: ', res)
     if (res && res.since_id) {
-        reset() // we issue the update first, to avoid duplicate actions from dispatch and overlap
-        main(res.since_id).then(() => {
-            consola.success('finished processed')
+        const prev_ids = res.since_id
+        getAllLikesSince().then(likes => {
+            const ids = likes.map(e => {
+                return e.id
+            })
+            update(prev_ids, ids)// we issue the update first, to avoid duplicate actions from dispatch and overlap
+            main(prev_ids, likes).then(() => {
+                consola.success('finished processed')
+            }).catch(e => {
+                consola.error(e)
+            })
         }).catch(e => {
             consola.error(e)
         })
     } else {
         consola.info('first time access detected')
-        reset()
+        getAllLikesSince().then(likes => {
+            const ids = likes.map(e => {
+                return e.id
+            })
+            update([], ids)// we issue the update first, to avoid duplicate actions from dispatch and overlap
+        }).catch(e => {
+            consola.error(e)
+        })
     }
 }).catch(e => {
     consola.error(e)
