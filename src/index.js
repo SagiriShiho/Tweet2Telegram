@@ -9,6 +9,8 @@ const { getAllLikesSince, getLatestLikeId } = require('./utils/twitter')
 const { writeData, readData } = require('./utils/io') 
 const { RateLimit } = require('async-sema');
 const lim = RateLimit(5, { timeUnit: '60000', uniformDistribution: true})
+const retry = require('async-retry')
+const retryTimes = 5
 
 // Telegram allow 30 message/s, channel however, said 20 message / minute
 // This slow down the process, as each tweet can have upto 4 message so each time it is safe to process
@@ -44,14 +46,18 @@ ${tweet.text}
             consola.info('build message: ', mediaGroup)
 
             await lim()
-            messages.push(bot.sendMediaGroup(channelID, mediaGroup))
+            await retry(async () => bot.sendMediaGroup(channelID, mediaGroup), {
+                retries: retryTimes
+            }).catch(e => consola.warning(`${tweet.id} send failed after 5 retries`))
             continue
         }
 
         await lim()
-        messages.push(bot.sendMessage(channelID, template, {
+        await retry(async () => bot.sendMessage(channelID, template, {
             parse_mode: 'html'
-        }))
+        }), {
+            retries: retryTimes
+        }).catch(e => consola.warning(`${tweet.id} send failed after 5 retries`))
     }
 
     return messages

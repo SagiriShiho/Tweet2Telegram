@@ -1,5 +1,7 @@
 # Twitter Likes to Telegram
 
+如果你在使用, 记得点击右上角Watch, 获取后续功能更新
+
 ## What 
 
 获取点赞推文内容, 发送到指定Telegram聊天
@@ -44,12 +46,6 @@
     - 真的真的不会有人一口气搞那么多吧
     - 不够用就加快频率吧
 - repository_dispatch: `type: fetchLikes`
-
-## Known Issue
-
-Twitter部分时候API不会返回内嵌媒体, 如果你知道怎么回事, 请开一个Issue告诉我解决方案
-
-Twitter won't return tweet media sometimes, please open an issue if you have an solution or know what is going on.
 
 ## Demo
 

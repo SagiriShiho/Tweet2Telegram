@@ -79,7 +79,10 @@ const formatText = (str, tweet) => {
 }
 
 const getAllLikesSince = async () => {
-    const content = await twitterClient.tweets.favoritesList({ count: 200 })
+    const content = await twitterClient.tweets.favoritesList({ 
+        count: 200,
+        tweet_mode: 'extended'
+    })
     return content.map(e => {
         return {
             id: e.id_str,
@@ -89,7 +92,7 @@ const getAllLikesSince = async () => {
                 username: e.user.screen_name,
                 link: constructProfileLink(e.user.screen_name)
             },
-            text: formatText(e.text, e),
+            text: formatText(e.full_text, e),
             nsfw: e.possibly_sensitive
         }
     })
