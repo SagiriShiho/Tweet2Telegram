@@ -20,7 +20,7 @@ const main = async (prev_ids, likes) => {
 
     const messages = []
     // We cannot do map: we need rate limits
-    for (const tweet of likes.reverse()) { // Loop from the back of the array: the same order of when likes
+    for (const tweet of likes) {
         if (prev_ids.includes(tweet.id)) {
             consola.info('tweet id skipped: ', tweet.id)
             continue // skip this id, sent
@@ -64,13 +64,14 @@ ${tweet.text}
 }
 
 const update = async (prev_ids, ids) => {
-    if (prev_ids.length === ids.length && prev_ids.every(function(value, index) { return value === ids[index]})) {
+    if (prev_ids.length === ids.length && prev_ids.every(function(value, index) { return value === ids[index] })) {
         consola.success('no update required')
-        return
+        return false
     } else {
         const d =  { since_id: ids }
         await writeData(d)
         consola.success('finished update')
+        return true
     }
 }
 
@@ -82,11 +83,17 @@ readData().then(res => {
             const ids = likes.map(e => {
                 return e.id
             })
-            update(prev_ids, ids)// we issue the update first, to avoid duplicate actions from dispatch and overlap
-            main(prev_ids, likes).then(() => {
-                consola.success('finished processed')
-            }).catch(e => {
-                consola.error(e)
+            // we issue the update first, to avoid duplicate actions from dispatch and overlap
+            update(prev_ids, ids).then(hasUpdate => {
+                if (hasUpdate) {    
+                    main(prev_ids, likes).then(() => {
+                        consola.success('finished processed')
+                    }).catch(e => {
+                        consola.error(e)
+                    })
+                } else {
+                    consola.success('no message to sent, skipped')
+                }
             })
         }).catch(e => {
             consola.error(e)
@@ -97,7 +104,7 @@ readData().then(res => {
             const ids = likes.map(e => {
                 return e.id
             })
-            update([], ids)// we issue the update first, to avoid duplicate actions from dispatch and overlap
+            update([], ids)
         }).catch(e => {
             consola.error(e)
         })
