@@ -42,7 +42,7 @@
 ### Trigger
 
 - Push 
-- 每15分钟运行一次, 每次获取200条
+- 每15分钟运行一次, 每次获取100条
     - 真的真的不会有人一口气搞那么多吧
     - 不够用就加快频率吧
 - repository_dispatch: `type: fetchLikes`

@@ -73,6 +73,7 @@ const update = async (prev_ids, likes) => {
     if (shouldUpdate.length !== 0) {
         const d =  { since_id: likes.map(e => e.id) }
         await writeData(d)
+        consola.success('Gist updated!')
     }
 
     consola.success(`Finished update: prev(${prev_ids.length}), current(${likes.length}), diff(${shouldUpdate.length})`)
