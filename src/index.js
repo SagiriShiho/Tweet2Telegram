@@ -15,9 +15,7 @@ const retryTimes = 5
 // Telegram allow 30 message/s, channel however, said 20 message / minute
 // This slow down the process, as each tweet can have upto 4 message so each time it is safe to process
 // ~5 tweet/minutes
-const main = async (prev_ids, likes) => {
-    consola.info("main: since_id:", prev_ids)
-
+const main = async (likes) => {
     const messages = []
     // We cannot do map: we need rate limits
     for (const tweet of likes) {
@@ -63,16 +61,23 @@ ${tweet.text}
     return messages
 }
 
-const update = async (prev_ids, ids) => {
-    if (prev_ids.length === ids.length && prev_ids.every(function(value, index) { return value === ids[index] })) {
-        consola.success('no update required')
-        return false
-    } else {
-        const d =  { since_id: ids }
-        await writeData(d)
-        consola.success('finished update')
-        return true
+const update = async (prev_ids, likes) => {
+    const shouldUpdate = []
+
+    for (const like of likes) {
+        if (!prev_ids.includes(like.id)) {
+            shouldUpdate.push(like)
+        }
     }
+
+    if (shouldUpdate.length !== 0) {
+        const d =  { since_id: likes.map(e => e.id) }
+        await writeData(d)
+    }
+
+    consola.success(`Finished update: prev(${prev_ids.length}), current(${likes.length}), diff(${shouldUpdate.length})`)
+
+    return shouldUpdate
 }
 
 readData().then(res => {
@@ -80,20 +85,13 @@ readData().then(res => {
     if (res && res.since_id) {
         const prev_ids = res.since_id
         getAllLikesSince().then(likes => {
-            const ids = likes.map(e => {
-                return e.id
-            })
             // we issue the update first, to avoid duplicate actions from dispatch and overlap
-            update(prev_ids, ids).then(hasUpdate => {
-                if (hasUpdate) {    
-                    main(prev_ids, likes).then(() => {
-                        consola.success('finished processed')
-                    }).catch(e => {
-                        consola.error(e)
-                    })
-                } else {
-                    consola.success('no message to sent, skipped')
-                }
+            update(prev_ids, likes).then(updates => {  
+                main(updates).then(() => {
+                    consola.success('finished processed')
+                }).catch(e => {
+                    consola.error(e)
+                })
             })
         }).catch(e => {
             consola.error(e)
@@ -101,10 +99,7 @@ readData().then(res => {
     } else {
         consola.info('first time access detected')
         getAllLikesSince().then(likes => {
-            const ids = likes.map(e => {
-                return e.id
-            })
-            update([], ids)
+            update([], likes)
         }).catch(e => {
             consola.error(e)
         })
