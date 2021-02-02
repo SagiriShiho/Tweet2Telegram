@@ -19,11 +19,6 @@ const main = async (likes) => {
     const messages = []
     // We cannot do map: we need rate limits
     for (const tweet of likes) {
-        if (prev_ids.includes(tweet.id)) {
-            consola.info('tweet id skipped: ', tweet.id)
-            continue // skip this id, sent
-        }
-
         consola.info('tweet for: ', tweet)
         const template = `<a href="${tweet.link}">Tweet</a> by <a href="${tweet.user.link}">@${tweet.user.username}</a> ${tweet.nsfw ? '#possiblyNSFW' : ''}
 
