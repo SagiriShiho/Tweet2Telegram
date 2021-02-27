@@ -7,7 +7,7 @@ on:
   repository_dispatch:
     types: fetchLikes
   schedule:
-    - cron:  '*/15 * * * *'
+    - cron:  '*/3 * * * *'
 
 jobs:
   # Set the job key. The key is displayed as the job name
