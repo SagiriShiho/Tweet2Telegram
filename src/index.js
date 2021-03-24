@@ -20,8 +20,7 @@ const main = async (likes) => {
     // We cannot do map: we need rate limits
     for (const tweet of likes) {
         consola.info('tweet for: ', tweet)
-        const template = `<a href="${tweet.link}">Tweet</a> by <a href="${tweet.user.link}">@${tweet.user.username}</a> ${tweet.nsfw ? '#possiblyNSFW' : ''}
-
+        const template = `${tweet.link} ${tweet.nsfw ? '#possiblyNSFW' : ''}
 ${tweet.text}
 `
         if (tweet.media.length !== 0) {
