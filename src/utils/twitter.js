@@ -82,7 +82,7 @@ const getAllLikesSince = async () => {
     const content = await twitterClient.tweets.favoritesList({ 
         // Limit to 100, It is concerned that Twitter has some bug with the 
         // number of tweets here. see #2
-        count: 200,
+        count: 150,
         tweet_mode: 'extended'
     })
     return content.map(e => {
